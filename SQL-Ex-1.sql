@@ -96,7 +96,7 @@ ON e.mgr = m.empno;
 
 --Display employee name and salary rounded to nearest 100.
 
-  SELECT ENAME,ROUND('SAL',100)
+  SELECT ENAME,ROUND(SAL,2)
   FROM EMP;
 
 --Display employee name and salary + commission (handle NULL).
