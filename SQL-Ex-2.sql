@@ -1,0 +1,193 @@
+
+--   ***   CREATE TABLE   ***  ---
+
+CREATE TABLE My_Table(SNo Number(10), Name varchar2(50),Phone Number(10));
+
+-- INSERT INTO TABLE 
+
+INSERT INTO MY_TABLE VALUES(1, 'AKSARA',1234567890);
+INSERT INTO MY_TABLE(SNO,NAME) VALUES(2,'AMULYA');
+INSERT INTO MY_TABLE(SNO) VALUES(3);
+INSERT INTO MY_TABLE(SNO,NAME,PHONE) VALUES(4,'ANANYA',3456789);
+INSERT INTO MY_TABLE(SNO,NAME,PHONE) VALUES(5,UPPER('gayatri'),3456789);
+
+-- SELECT FROM MY_TABLE
+
+SELECT * FROM MY_TABLE;
+
+SELECT SNO "Serial Number", Name "Student Name",phone "Phone Number"
+FROM MY_TABLE;
+
+don't allow Null values while inserting data in a table 
+	 we can use not null constraint whhile creating table or we can alter table and add not null constraint if 
+	 table already created. We need to check for the data if any null values are there in the column which we are adding not null constrint.
+	 In Oracle, preventing NULL values during INSERT can be handled in multiple layers. Practically, there are 5 commonly used ways, from database-level (strongest) to application-level (weakest).
+  
+		 . CREATE TABLE MY_TABLE (SNO NUMBER(10) NOT NULL,NAME VARCHAR2(50),PHONE NUMBER(12));
+		 . CREATE TABLE MY_TABLE (SNO NUMBER(10) constraint mt_nonNull NOT NULL,NAME VARCHAR2(50),PHONE NUMBER(12));
+ 
+ alternatively:
+ 
+			CREATE TABLE MY_TABLE (
+			SNO   NUMBER(10),
+			NAME  VARCHAR2(50),
+			PHONE NUMBER(12),
+			CONSTRAINT chk_sno_not_null CHECK (SNO IS NOT NULL)
+		);
+	4. ALTER TABLE MY_TABLE MODIFY SNO NOT NULL;
+	5. ALTER TABLE MY_TABLE MODIFY SNO CONSTRAINT nn_sno NOT NULL;
+			SELECT constraint_name, constraint_type
+			FROM user_constraints
+			WHERE table_name = 'MY_TABLE';
+	constraint_type = 'C' → CHECK constraint (Oracle internally)
+	
+	Can be dropped normally:
+		ALTER TABLE MY_TABLE DROP CONSTRAINT chk_sno_not_null;
+		
+	**  Can we add NOT NULL using ADD CONSTRAINT?
+		Answer:
+			❌ No, NOT NULL must use MODIFY
+			✔ ADD CONSTRAINT is used for CHECK, PK, FK, UNIQUE
+
+	Before adding a NOT NULL constraint in Oracle, you must clean up existing NULL values in that column. Otherwise, the ALTER TABLE ... MODIFY ... NOT NULL will fail.
+
+Below are all practical ways to handle NULL values before adding a NOT NULL constraint.
+=======================================================================================
+
+		SELECT *
+		FROM MY_TABLE
+		WHERE SNO IS NULL;
+
+		Handle NULLs — Different Approaches:
+		**  Approach 1: UPDATE NULLs with a default value (Most common)
+				UPDATE MY_TABLE
+				SET SNO = 0
+				WHERE SNO IS NULL;
+				
+				COMMIT;
+		** Approach 2: UPDATE using sequence (For ID columns)
+		Check if the sequence really exists:
+			SELECT sequence_name
+			FROM user_sequences;
+			
+			Create the sequence (Most common fix)
+			CREATE SEQUENCE sno_seq
+			START WITH 1
+			INCREMENT BY 1
+			NOCACHE
+			NOCYCLE;
+		If the sequence was created by another user (e.g. HR):
+
+		Check:
+			SELECT sequence_name, sequence_owner
+			FROM all_sequences
+			WHERE sequence_name = 'SNO_SEQ';
+
+		Use schema prefix:
+			UPDATE MY_TABLE
+			SET SNO = hr.sno_seq.NEXTVAL
+			WHERE SNO IS NULL;
+
+		If sequence is in another schema:
+			GRANT SELECT ON hr.sno_seq TO your_user;
+
+
+		Then:
+
+		UPDATE MY_TABLE
+		SET SNO = hr.sno_seq.NEXTVAL
+		WHERE SNO IS NULL;
+
+** Oracle stores sequence names in UPPERCASE unless quoted.
+
+		❌ Wrong:
+
+		snoSeq.NEXTVAL
+
+
+		✔ Correct:
+
+		SNO_SEQ.NEXTVAL
+		Using sequence before creation in same script:
+			CREATE SEQUENCE sno_seq;
+			UPDATE MY_TABLE SET SNO = sno_seq.NEXTVAL WHERE SNO IS NULL;
+		Quick Debug Query:
+			SELECT * FROM user_sequences WHERE sequence_name = 'SNO_SEQ';
+			
+Interview-ready explanation
+
+Why ORA-02289 occurs?
+	Answer:
+
+		-- Sequence does not exist
+		-- Sequence exists in another schema
+		-- Missing privileges
+		-- Wrong-- sequence name
+		-- Final Checklist
+
+		✔ Sequence exists
+		✔ Correct schema name used
+		✔ SELECT privilege granted
+		✔ Correct spelling
+
+
+		**  Approach 3: DELETE rows with NULLs (If data not needed)
+
+		** Approach 4: MOVE NULLs to another table (Backup/Audit)
+			CREATE TABLE MY_TABLE_NULLS AS
+			SELECT *
+			FROM MY_TABLE
+			WHERE SNO IS NULL;
+			
+			DELETE FROM MY_TABLE
+			WHERE SNO IS NULL;
+			
+			COMMIT;
+
+
+					DELETE FROM MY_TABLE
+					WHERE SNO IS NULL;
+					
+					COMMIT;
+
+		Approach 5: Temporarily use CHECK constraint to validate
+				ALTER TABLE MY_TABLE
+				ADD CONSTRAINT chk_sno_nn CHECK (SNO IS NOT NULL) ENABLE NOVALIDATE;
+
+
+		Command	    Purpose
+		CREATE:	    Create new database objects
+		ALTER :	    Modify existing objects
+		RENAME:	    Rename database objects
+		TRUNCATE:	Quickly remove all rows from a table
+		DROP	    Delete objects permanently
+
+
+
+ --==================================
+ 
+ 
+	CREATE TABLE MY_TABLE1 (SNO NUMBER(10) NOT NULL,NAME VARCHAR2(50),PHONE NUMBER(12));
+
+		SELECT *
+		FROM MY_TABLE
+		WHERE SNO IS NULL;
+
+		UPDATE MY_TABLE
+		SET SNO = sno_seq.NEXTVAL
+		WHERE SNO IS NULL;
+
+		SELECT * FROM USER_CONSTRAINTS WHERE TABLE_NAME='MY_TABLE1';
+
+
+-- STUDENT TABLES
+
+-- To Create Student Table - DDL
+		CREATE TABLE STUDENTS(
+			studentid number(10) NOT NULL,
+			firstname varchar2(50) NOT NULL,
+			lastname varchar2(50) NOT NULL,
+			enrollmentdate date,
+			major varchar2(100)
+		);
+			
