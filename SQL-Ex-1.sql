@@ -55,6 +55,11 @@
     FROM emp
     WHERE REGEXP_COUNT(UPPER(ename), 'L') >= 2;
 
+    -- Alternatively:
+        SELECT *
+        FROM emp
+        WHERE UPPER(ename) LIKE '%LL%';
+
 --12. List the employees whose salary is between 2000 and 3000.
     SELECT ENAME, SAL AS SALARY
     FROM EMP
