@@ -105,7 +105,7 @@ ON e.mgr = m.empno;
   FROM EMP;
 
 --Display employee name and salary + commission (handle NULL).
-    SELECT ENAME AS EMPLOYEE_NAME, NVL(SAL+COMM,0) AS SALARY
+    SELECT ENAME AS EMPLOYEE_NAME, SAL+NVL(COMM,0) AS SALARY
     FROM EMP;
 
 --Display employee names in upper case.
