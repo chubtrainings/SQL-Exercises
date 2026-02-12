@@ -1,3 +1,6 @@
+-- DATA SET --
+
+
 CREATE TABLE sailors (
     sid INT PRIMARY KEY,
     sname VARCHAR(50) NOT NULL,
